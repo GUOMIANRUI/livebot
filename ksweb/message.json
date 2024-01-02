@@ -1,0 +1,36 @@
+{
+  "displayLikeCount": "2209",
+  "displayWatchingCount": "463",
+  "giftFeeds": [
+    {
+      "batchSize": 1,
+      "comboCount": 34,
+      "deviceHash": "Zmnc/A==",
+      "expireDuration": "300000",
+      "giftId": 11500,
+      "mergeKey": "762073664-9437034-11500-1",
+      "rank": 8,
+      "styleType": "",
+      "user": {
+        "principalId": "myb1406997678",
+        "userName": "网名合法"
+      }
+    },
+    {
+      "batchSize": 1,
+      "comboCount": 34,
+      "deviceHash": "Zmnc/A==",
+      "expireDuration": "300000",
+      "giftId": 11500,
+      "mergeKey": "762073664-9437034-11500-1",
+      "rank": 8,
+      "styleType": "",
+      "user": {
+        "principalId": "myb1406997678",
+        "userName": "网名合法"
+      }
+    }
+  ],
+  "commentFeeds": null,
+  "likeFeeds": null
+}
