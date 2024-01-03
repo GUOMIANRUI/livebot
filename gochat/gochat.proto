@@ -1,0 +1,29 @@
+syntax = "proto3";
+package gochat;
+
+// 这里go_package指定的是协议生成文件pb.go在git上的地址
+option go_package = "gochat/proto";
+
+service GoChatService {
+  // GoChat says hello.
+  rpc GoChat(GoChatRequest) returns(GoChatResponse);
+  rpc GoChatAudio(GoChataudioRequest) returns(GoChataudioResponse);
+}
+
+message GoChatRequest {
+  string msg = 1;
+}
+
+message GoChatResponse {
+  string msg = 1;
+}
+
+message GoChataudioRequest {
+  string msg = 1;
+  string filename = 2;
+}
+
+message GoChataudioResponse {
+  string msg = 1;
+  int32 filelongth = 2;
+}

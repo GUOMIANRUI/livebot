@@ -1,0 +1,2 @@
+*.go linguist-language=go
+*.py linguist-language=python

@@ -1,0 +1,141 @@
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"time"
+
+	"nhooyr.io/websocket"
+	"nhooyr.io/websocket/wsjson"
+)
+
+// 快手直播间 WebSocket 连接地址
+const (
+	// kuaishouWebSocketURL = "wss://websocket.live.kuaishou.com/websocket"
+	kuaishouWebSocketURL = "wss://live-ws-group11.kuaishou.com/websocket"
+)
+
+type Comment struct {
+	User       User   `json:"user"`
+	Content    string `json:"content"`
+	DeviceHash string `json:"deviceHash"`
+	ShowType   string `json:"showType"`
+	// 其他字段...
+}
+
+type User struct {
+	PrincipalID string `json:"principalId"`
+	UserName    string `json:"userName"`
+	// 其他字段...
+}
+
+type Message struct {
+	DisplayWatchingCount string     `json:"displayWatchingCount"`
+	DisplayLikeCount     string     `json:"displayLikeCount"`
+	CommentFeeds         []Comment  `json:"commentFeeds"`
+	GiftFeeds            []GiftFeed `json:"giftFeeds"`
+	// 其他字段...
+}
+
+type GiftFeed struct {
+	// 礼物相关字段...
+	// ...
+}
+
+func main() {
+	// 创建一个上下文和取消函数，用于处理信号中断
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	// 创建 WebSocket 连接
+	c, _, err := websocket.Dial(ctx, kuaishouWebSocketURL, nil)
+	if err != nil {
+		log.Fatalf("无法建立WebSocket连接: %v", err)
+	} else {
+		log.Println("建立WebSocket连接成功")
+	}
+	defer c.Close(websocket.StatusInternalError, "连接关闭")
+
+	done := make(chan struct{})
+
+	// go func() {
+	// 	defer close(done)
+	// 	// 读取消息 WebSocket 消息的循环
+	// 	for {
+	// 		log.Println("正在读取消息")
+	// 		var msg map[string]interface{}
+	// 		err := wsjson.Read(ctx, c, &msg)
+	// 		if err != nil {
+	// 			log.Printf("无法读取消息: %v", err)
+	// 			// 如果发生错误，打印更多信息
+	// 			if websocket.CloseStatus(err) != websocket.StatusNormalClosure {
+	// 				log.Printf("读取消息时发生错误: %v", err)
+	// 			}
+	// 			return
+	// 		}
+	// 		log.Printf("收到消息: %+v", msg)
+
+	// 		// 处理弹幕信息
+	// 		if commentFeeds, ok := msg["commentFeeds"].([]interface{}); ok {
+	// 			for _, comment := range commentFeeds {
+	// 				if commentData, ok := comment.(map[string]interface{}); ok {
+	// 					if content, exists := commentData["content"].(string); exists {
+	// 						log.Println("收到评论:", content)
+	// 					}
+	// 					// 处理其他字段...
+	// 				}
+	// 			}
+	// 		}
+
+	// 		// 处理礼物信息
+	// 		if giftFeeds, ok := msg["giftFeeds"].([]interface{}); ok {
+	// 			for _, gift := range giftFeeds {
+	// 				// 处理礼物信息...
+	// 				fmt.Println(gift)
+	// 			}
+	// 		}
+	// 	}
+
+	// }()
+
+	// 读取消息 WebSocket 消息的循环
+	for {
+		log.Println("正在读取消息")
+		msg := &Message{}
+		err := wsjson.Read(ctx, c, &msg)
+		if err != nil {
+			log.Printf("无法读取消息: %v", err)
+			// 如果发生错误，打印更多信息
+			if websocket.CloseStatus(err) != websocket.StatusNormalClosure {
+				log.Printf("读取消息时发生错误: %v", err)
+			}
+			return
+		}
+		log.Printf("收到消息: %+v", msg)
+
+		// 处理消息...
+	}
+
+	// 发送订阅请求
+	subscribeMsg := map[string]interface{}{
+		"protocol": "1.0",
+		"nonce":    time.Now().Unix(),
+		"request": map[string]interface{}{
+			"biz":         "live",
+			"cmd":         "subscribe",
+			"room_id":     "3x3k7ay3dw638ue", // 替换为你要订阅的直播间ID
+			"live_mode":   "1",
+			"product":     "live",
+			"stream_type": "1",
+		},
+	}
+
+	err = wsjson.Write(ctx, c, subscribeMsg)
+	if err != nil {
+		log.Fatalf("无法发送订阅消息: %v", err)
+	}
+
+	<-done
+}
