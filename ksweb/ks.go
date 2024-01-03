@@ -100,28 +100,32 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 实时增量保存 data 数据到 json 文件
-	err = SaveToFile(data, "message.json")
-	if err != nil {
-		log.Println("保存数据到文件时发生错误：", err)
-	} else {
-		log.Println("数据已成功保存到文件")
-	}
-	// 读取文件中的数据
-	messagetmp, err := ReadFromFile("message.json")
-	if err != nil {
-		log.Println("读取文件时发生错误：", err)
-	}
-	messagetmp.DisplayLikeCount = data.DisplayLikeCount
-	messagetmp.DisplayWatchingCount = data.DisplayWatchingCount
-	messagetmp.GiftFeeds = append(messagetmp.GiftFeeds, data.GiftFeeds...)
-	messagetmp.CommentFeeds = append(messagetmp.CommentFeeds, data.CommentFeeds...)
-	messagetmp.LikeFeeds = append(messagetmp.LikeFeeds, data.LikeFeeds...)
+	if _, err := os.Stat("message.json"); !os.IsNotExist(err) {
+		// 读取文件中的数据
+		messagetmp, err := ReadFromFile("message.json")
+		if err != nil {
+			log.Println("读取文件时发生错误：", err)
+		}
+		messagetmp.DisplayLikeCount = data.DisplayLikeCount
+		messagetmp.DisplayWatchingCount = data.DisplayWatchingCount
+		messagetmp.GiftFeeds = append(messagetmp.GiftFeeds, data.GiftFeeds...)
+		messagetmp.CommentFeeds = append(messagetmp.CommentFeeds, data.CommentFeeds...)
+		messagetmp.LikeFeeds = append(messagetmp.LikeFeeds, data.LikeFeeds...)
 
-	err = SaveToFile(messagetmp, "message.json")
-	if err != nil {
-		log.Println("保存数据到文件时发生错误：", err)
+		err = SaveToFile(messagetmp, "message.json")
+		if err != nil {
+			log.Println("保存数据到文件时发生错误：", err)
+		} else {
+			log.Println("数据已成功保存到文件")
+		}
 	} else {
-		log.Println("数据已成功保存到文件")
+		// 文件不存在，直接保存数据
+		err = SaveToFile(data, "message.json")
+		if err != nil {
+			log.Println("保存数据到文件时发生错误：", err)
+		} else {
+			log.Println("数据已成功保存到文件")
+		}
 	}
 
 	global.SetMessage(*data)

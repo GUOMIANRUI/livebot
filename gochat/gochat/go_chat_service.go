@@ -65,6 +65,7 @@ func (s *goChatServiceImpl) GoChatAudio(
 	p := 0
 	p2 := 0
 retry:
+	log.Infof("filename=%s\n", filename)
 	if _, err := os.Stat(filename); os.IsNotExist(err) || strings.Contains(filename, "answer") == true {
 		log.Info("文件不存在，开始生成...")
 		rspmsg, err = chat.Audio(chataudio, filename)
