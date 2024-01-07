@@ -1,0 +1,78 @@
+/* 样式表 */
+
+/* 容器样式，用于居中显示轮播框 */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 设置容器高度为视口高度，使其充满整个屏幕 */
+  }
+  
+  /* 轮播框样式 */
+  .carousel {
+    width: 800px; /* 调整宽度为你想要的大小 */
+    height: 500px; /* 调整高度为你想要的大小 */
+    background-color: rgba(255, 255, 255, 0.7); /* 设置半透明背景颜色 */
+    border: 2px solid #ccc;
+    padding: 20px;
+    overflow: hidden;
+    border-radius: 10px; /* 添加圆角效果 */
+    position: relative; /* 用于定位下一个标识符 */
+    display: flex; /* 添加弹性布局 */
+    flex-direction: column; /* 垂直排列子元素 */
+    justify-content: center; /* 垂直居中子元素 */
+    align-items: center; /* 水平居中子元素 */
+  }
+
+  /* 添加字体样式 */
+  .carousel h1 {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .carousel p {
+    font-size: 24px;
+    line-height: 1.5;
+    text-align: center;
+  }
+  
+  /* 添加下一个标识符样式 */
+  .carousel::after {
+    content: "(´• ω •`) "; /* 添加一个箭头符号，你也可以替换为其他有趣的符号 */
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: #ff4081; /* 设置一个活力十足的颜色 */
+  }
+  
+  /* 故事样式，默认隐藏 */
+  .story {
+    display: none;
+    text-align: center;
+  }
+  
+  /* 第一个故事显示 */
+  .story:first-child {
+    display: block;
+  }
+  
+  /* 故事标题样式 */
+  h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* 故事内容样式 */
+  p {
+    font-size: 16px;
+    color: #666;
+  }
+/* 添加背景图样式 */
+.container {
+    background-image: url("/static/background.png"); /* 背景图像路径 */
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
