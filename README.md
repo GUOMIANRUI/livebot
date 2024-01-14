@@ -14,6 +14,7 @@
 - ... todo
 ## 支持直播间
 - 快手
+- bilibili doing(B站还有在乎的人，不敢直播调试)
 - ... todo
 ## 接入模型
 - gpt-3.5-turbo
