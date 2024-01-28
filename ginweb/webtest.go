@@ -8,14 +8,17 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+	"webtest/global"
 	pb "webtest/stub/gochat/proto"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +39,8 @@ var (
 )
 
 func main() {
+	startTitle := "杀手传说"
+
 	r := gin.Default()
 
 	// 设置静态文件目录
@@ -91,14 +96,34 @@ func main() {
 		storyarr := make([]Story, 1)
 		title := make(map[string]bool)
 		timeuse := int32(0)
+		startIndex := 0 // 从指定标题开始的索引
+		// 查找指定标题在故事列表中的索引
+		for i, story := range stories {
+			if story.Title == startTitle {
+				startIndex = i
+				break
+			}
+		}
 
 		// 将每个故事单独发送给客户端
 		for p0, story := range stories {
+			if p0 < startIndex {
+				continue
+			}
 			timeuse = 0
 			pp := 0
 			// 先读标题，并计算时间
 			if _, ok := title[story.Title]; !ok {
 				title[story.Title] = true
+
+				// 发送标题给客户端
+				storyarr[0] = Story{Title: story.Title, Content: ""}
+				err := conn.WriteJSON(storyarr)
+				if err != nil {
+					log.Println("Failed to send story:", err)
+					break
+				}
+
 				req := &pb.GoChataudioRequest{}
 				voicefilename = strconv.Itoa(p0) + "-" + "title" + "-web.mp3"
 				req.Filename = voicefilename
@@ -186,6 +211,165 @@ func main() {
 				time.Sleep(time.Duration(timeuse) * time.Second)
 				timeuse = 0
 			}
+
+			// 读完一段故事，欢迎新进入直播间的观众
+			req := &pb.GoChataudioRequest{}
+			var longmsg int32
+			// 读取进入直播间的观众的列表 spectators 选前4个读取欢迎词
+			messagetmps := make([]*global.CmdLiveOpenPlatformSuperChatData, 0)
+			// 读取文件中的数据
+			// /d/xzcode/bianka-main/bilibili/example
+			err = ReadFromFile("../bianka-main/bilibili/example/superChatData.json", &messagetmps)
+			if err != nil {
+				log.Println("读取文件时发生错误：", err)
+			}
+
+			var weluser string
+			// 做下去重
+			onlyuser := make(map[string]bool)
+
+			if len(messagetmps) > 0 {
+				for i, v := range messagetmps {
+					if _, ok := onlyuser[v.Uname]; !ok && i <= 5 {
+						onlyuser[v.Uname] = true
+						weluser = weluser + v.Uname + "、"
+					}
+				}
+				weluser = "欢迎" + weluser + "  进入直播间"
+				req.Msg = weluser
+				req.Filename = "weluser" + strconv.Itoa(p0) + "name" + ".mp3"
+				reply, err := proxy.GoChatAudio(ctx, req)
+				if err != nil {
+					log.Fatalf("err: %v", err)
+				}
+				longmsg = reply.Filelongth
+				longmsg += reply.Filelongth + 1 // 留1秒缓冲
+				time.Sleep(time.Duration(longmsg) * time.Second)
+			}
+
+			// 如果有人点赞，选前4个感谢点赞
+			messagetmpslike := make([]*global.CmdLiveOpenPlatformLikeData, 0)
+			// 读取文件中的数据
+			err = ReadFromFile("../bianka-main/bilibili/example/likeData.json", &messagetmpslike)
+			if err != nil {
+				log.Println("读取文件时发生错误：", err)
+			}
+			var likemsg string
+
+			if len(messagetmpslike) > 0 {
+				for i, v := range messagetmps {
+					if i <= 4 {
+						likemsg = likemsg + v.Uname + "、"
+					}
+				}
+				likemsg = "感谢" + likemsg + "的点赞"
+				req.Msg = likemsg
+				req.Filename = "thklike" + strconv.Itoa(p0) + "name" + ".mp3"
+				reply, err := proxy.GoChatAudio(ctx, req)
+				if err != nil {
+					log.Fatalf("err: %v", err)
+				}
+				longmsg = reply.Filelongth
+				longmsg += reply.Filelongth + 1 // 留1秒缓冲
+				time.Sleep(time.Duration(longmsg) * time.Second)
+			}
+
+			// 读取前四位送的礼物并感谢
+			messagetmpsgift := make([]*global.CmdLiveOpenPlatformSendGiftData, 0)
+			// 读取文件中的数据
+			err = ReadFromFile("../bianka-main/bilibili/example/giftData.json", &messagetmpsgift)
+			if err != nil {
+				log.Println("读取文件时发生错误：", err)
+			}
+			var giftmsg string
+
+			if len(messagetmpsgift) > 0 {
+				// log.Printf("message.GiftFeeds=%v\n", message.GiftFeeds)
+				for i, v := range messagetmpsgift {
+					if i <= 4 {
+						if i != 4 {
+							giftmsg = giftmsg + v.Uname + "送的" + v.GiftName + "、感谢"
+						} else {
+							giftmsg = giftmsg + v.Uname + "送的" + v.GiftName
+						}
+					}
+				}
+				giftmsg = "感谢" + giftmsg
+				req.Msg = giftmsg
+				req.Filename = "thkgift" + strconv.Itoa(p0) + "name" + ".mp3"
+				reply, err := proxy.GoChatAudio(ctx, req)
+				if err != nil {
+					log.Fatalf("err: %v", err)
+				}
+				longmsg = reply.Filelongth
+				longmsg += reply.Filelongth + 1 // 留1秒缓冲
+				time.Sleep(time.Duration(longmsg) * time.Second)
+			}
+
+			// 读取进入直播间的观众的问题列表 questions 选前4个长度大于5进行回答
+			messagetmpsDanmu := make([]*global.CmdLiveOpenPlatformDanmuData, 0)
+			// 读取文件中的数据
+			err = ReadFromFile("../bianka-main/bilibili/example/danmuData.json", &messagetmpsDanmu)
+			if err != nil {
+				log.Println("读取文件时发生错误：", err)
+			}
+			if len(messagetmpsDanmu) > 0 {
+				for i, v := range messagetmpsDanmu {
+					if len(v.Msg) > 5 && strings.Contains(v.Msg, "赞了这个直播") == false && i < 4 {
+						reqtxt := &pb.GoChatRequest{}
+						reqtxt.Msg = "你是一位文学杂志作者，请简要回答观众的问题，控制在100字以内：" + v.Msg
+						replytxt, err := proxy.GoChat(ctx, reqtxt)
+						if err != nil {
+							log.Fatalf("err: %v", err)
+						}
+
+						req.Filename = "answer" + strconv.Itoa(p0) + "content" + ".mp3"
+						req.Msg = v.Uname + "说" + v.Msg + "，我想说的是：" + replytxt.Msg
+						reply, err := proxy.GoChatAudio(ctx, req)
+						if err != nil {
+							log.Fatalf("err: %v", err)
+						}
+						longmsg = reply.Filelongth
+						longmsg += reply.Filelongth + 1 // 留1秒缓冲
+						time.Sleep(time.Duration(longmsg) * time.Second)
+						break
+					}
+				}
+			}
+
+			// 好的，让我们开始下一段故事
+			req.Msg = "好的，让我们开始下一段故事"
+			req.Filename = "end" + ".mp3"
+			reply, err := proxy.GoChatAudio(ctx, req)
+			if err != nil {
+				log.Fatalf("err: %v", err)
+			}
+			longmsg = reply.Filelongth
+			longmsg += reply.Filelongth + 1 // 留1秒缓冲
+			time.Sleep(time.Duration(longmsg) * time.Second)
+
+			// 清空json文件
+			messagetmps = make([]*global.CmdLiveOpenPlatformSuperChatData, 0)
+			err = SaveToFile(messagetmps, "../bianka-main/bilibili/example/superChatData.json")
+			if err != nil {
+				log.Println("覆盖文件时发生错误：", err)
+			}
+			messagetmpslike = make([]*global.CmdLiveOpenPlatformLikeData, 0)
+			err = SaveToFile(messagetmpslike, "../bianka-main/bilibili/example/likeData.json")
+			if err != nil {
+				log.Println("覆盖文件时发生错误：", err)
+			}
+			messagetmpsgift = make([]*global.CmdLiveOpenPlatformSendGiftData, 0)
+			err = SaveToFile(messagetmpsgift, "../bianka-main/bilibili/example/giftData.json")
+			if err != nil {
+				log.Println("覆盖文件时发生错误：", err)
+			}
+			messagetmpsDanmu = make([]*global.CmdLiveOpenPlatformDanmuData, 0)
+			err = SaveToFile(messagetmpsDanmu, "../bianka-main/bilibili/example/danmuData.json")
+			if err != nil {
+				log.Println("覆盖文件时发生错误：", err)
+			}
+
 		}
 
 		// 服务器将等待客户端发送新的故事，并将每个新的故事追加到全局故事变量中
@@ -275,4 +459,36 @@ func readStoriesFromFile(filename string) ([]Story, error) {
 	}
 
 	return stories, nil
+}
+
+func ReadFromFile(filename string, data interface{}) error {
+	// 从文件中读取数据
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	// 解析 JSON 数据
+	err = json.Unmarshal(content, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SaveToFile(data interface{}, filename string) error {
+	// 将数据序列化为JSON字符串
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// 保存JSON数据到文件
+	err = ioutil.WriteFile(filename, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

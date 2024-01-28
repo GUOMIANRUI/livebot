@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>二次元轮播小故事</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 添加一个id为stories-container的div元素作为故事容器 -->
+        <div class="carousel"  id="stories-container">
+            {{ range $index, $story := .Stories }}
+                <div class="story" style="display: none;">
+                    <h2>{{ index $story.Title }}</h2>
+                    <p>{{ index $story.Content }}</p>
+                </div>
+            {{ end }}
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <!-- <script>
+        var socket = new WebSocket("ws://" + window.location.host + "/ws");
+
+        socket.onmessage = function(event) {
+            var stories = JSON.parse(event.data);
+            // 根据具体的HTML结构和样式，更新故事显示的部分
+            // 例如，可以将故事标题和内容添加到指定的HTML元素中
+            var storyElement = document.getElementById("story");
+            storyElement.innerHTML = "";
+            for (var i = 0; i < stories.length; i++) {
+                var story = stories[i];
+                var titleElement = document.createElement("h3");
+                titleElement.textContent = story.Title;
+                var contentElement = document.createElement("p");
+                contentElement.textContent = story.Content;
+                storyElement.appendChild(titleElement);
+                storyElement.appendChild(contentElement);
+            }
+        };
+
+        // 接收到新故事时，将故事发送给服务器
+        function addStory() {
+            var title = document.getElementById("title").value;
+            var content = document.getElementById("content").value;
+            var newStory = {
+                Title: title,
+                Content: content
+            };
+            socket.send(JSON.stringify([newStory]));
+        }
+    </script> -->
+
+    <!-- 在合适的位置添加以下HTML元素 -->
+    <div id="story"></div>
+
+    <!-- 添加故事的输入框和按钮，用于发送新的故事 -->
+    <input type="text" id="title" placeholder="故事标题">
+    <textarea id="content" placeholder="故事内容"></textarea>
+    <button onclick="addStory()">添加故事</button>
+
+</body>
+</html>

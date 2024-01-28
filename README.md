@@ -14,7 +14,7 @@
 - ... todo
 ## 支持直播间
 - 快手
-- bilibili doing(B站还有在乎的人，不敢直播调试)
+- bilibili
 - ... todo
 ## 接入模型
 - gpt-3.5-turbo
@@ -29,6 +29,7 @@
 - [openaiapi](https://chat.openai.com/)
 ## 使用方法
 ```bash
+快手直播间启动顺序：
 # 运行 go server
 cd gochat/gochat
 go run .
@@ -41,6 +42,14 @@ go run ks.go
 # 运行 client 向server发起RPC请求实现客户端相关逻辑
 cd /ksweb/luobo
 go run lunbo.go
+
+bilibili启动顺序：
+/d/xzcode/bianka-main/bilibili/example
+go run live.go
+/d/xzcode/gochat/gochat
+go run .
+/d/xzcode/webtest
+go run webtest.go
 ```
 ## 注意事项
 - openaiapi密钥及直播间id自行更改

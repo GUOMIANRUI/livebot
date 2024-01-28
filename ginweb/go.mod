@@ -1,4 +1,4 @@
-module ginweb
+module webtest
 
 go 1.21.4
 

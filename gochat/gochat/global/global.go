@@ -9,7 +9,7 @@ var (
 	modulenameids = make(map[string][]int)
 	trafficlimits = make(map[string]int32)
 	lineIDs2      = make(map[int]string)
-	openaikey     = "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"
+	openaikey     = ""
 	proxyURL      = "http://127.0.0.1:7890"
 
 	mu sync.Mutex // 用于保护 modulenameids 和 trafficlimits 的互斥锁

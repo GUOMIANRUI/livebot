@@ -15,12 +15,13 @@ import (
 
 	"github.com/vtb-link/bianka/live"
 	"github.com/vtb-link/bianka/proto"
+	"github.com/vtb-link/bianka/savetofile"
 )
 
 var rCfg = live.NewConfig(
-	"", // 申请的key
-	"", // 申请的secret
-	0,  // 应用id
+	"",
+	"",
+	0, // 应用id
 )
 
 var code = "" // 身份码 也叫 idCode
@@ -105,7 +106,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行弹幕消息处理逻辑，使用danmuData中的数据
-		log.Println(cmd, danmuData)
+		log.Printf("cmd=%v, danmuData=%+v\n", cmd, danmuData)
+		savetofile.SaveDanmuData(danmuData)
 
 	case live.CmdLiveOpenPlatformSendGift:
 		giftData, ok := data.(*live.CmdLiveOpenPlatformSendGiftData)
@@ -114,7 +116,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行礼物消息处理逻辑，使用giftData中的数据
-		log.Println(cmd, giftData)
+		log.Printf("cmd=%v, giftData=%+v\n", cmd, giftData)
+		savetofile.SaveGiftData(giftData)
 
 	case live.CmdLiveOpenPlatformSuperChat:
 		superChatData, ok := data.(*live.CmdLiveOpenPlatformSuperChatData)
@@ -123,7 +126,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行上下线处理逻辑，使用superChatData中的数据
-		log.Println(cmd, superChatData)
+		log.Printf("cmd=%v, superChatData=%+v\n", cmd, superChatData)
+		savetofile.SaveSuperChatData(superChatData)
 
 	case live.CmdLiveOpenPlatformSuperChatDel:
 		superChatDelData, ok := data.(*live.CmdLiveOpenPlatformSuperChatDelData)
@@ -132,7 +136,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行删除上下线消息处理逻辑，使用superChatDelData中的数据
-		log.Println(cmd, superChatDelData)
+		log.Printf("cmd=%v, superChatDelData=%+v\n", cmd, superChatDelData)
+		savetofile.SaveSuperChatDelData(superChatDelData)
 
 	case live.CmdLiveOpenPlatformGuard:
 		guardData, ok := data.(*live.CmdLiveOpenPlatformGuardData)
@@ -141,7 +146,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行付费大航海消息处理逻辑，使用guardData中的数据
-		log.Println(cmd, guardData)
+		log.Printf("cmd=%v, guardData=%+v\n", cmd, guardData)
+		savetofile.SaveGuardData(guardData)
 
 	case live.CmdLiveOpenPlatformLike:
 		likeData, ok := data.(*live.CmdLiveOpenPlatformLikeData)
@@ -150,7 +156,8 @@ func messageHandle(msg *proto.Message) error {
 			return nil
 		}
 		// 执行点赞消息处理逻辑，使用likeData中的数据
-		log.Println(cmd, likeData)
+		log.Printf("cmd=%v, likeData=%+v\n", cmd, likeData)
+		savetofile.SaveLikeData(likeData)
 
 	default:
 		log.Printf("Unknown command: %s\n", cmd)
