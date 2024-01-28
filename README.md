@@ -2,7 +2,7 @@
 基于TPRC-GO框架的直播机器人
 </span>**
 
-![](ksweb/casefirst.PNG)
+![](bilibili/bilibili.PNG)
 
 ## 功能
 - 直播间人数、点赞数统计
