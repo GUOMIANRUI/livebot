@@ -1,0 +1,119 @@
+package main
+
+import (
+	"bufio"
+	"html/template"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+type Story struct {
+	Title   string // 故事标题
+	Content string // 故事内容
+}
+
+func main() {
+	r := gin.Default()
+
+	// 设置静态文件目录
+	r.Static("/static", "./static")
+
+	// 设置模板文件目录
+	r.LoadHTMLGlob("templates/*.html")
+
+	templatePath := "templates/index.html" // 相对于Go文件的路径
+	_, err := template.ParseFiles(templatePath)
+	if err != nil {
+		log.Fatal("Error parsing template:", err)
+	}
+
+	// 轮播页面路由
+	r.GET("/", func(c *gin.Context) {
+		stories, err := readStoriesFromFile("gushi.txt")
+		if err != nil {
+			c.AbortWithError(404, err)
+			return
+		}
+		duration, err := time.ParseDuration(c.Query("duration"))
+		if err != nil {
+			duration = 20 * time.Second // 默认时长为5秒
+		}
+
+		log.Printf("stories=%v\n", stories)
+
+		chunkSize := 1
+		for i := 0; i < len(stories); i += chunkSize {
+			end := i + chunkSize
+			if end > len(stories) {
+				end = len(stories)
+			}
+			chunk := stories[i:end]
+			log.Printf("chunk=%v\n", chunk)
+
+			c.HTML(200, "index.html", gin.H{
+				"Stories":  chunk,
+				"Duration": duration.Seconds(),
+			})
+			time.Sleep(10 * time.Second)
+			log.Printf("end")
+		}
+
+	})
+
+	r.Run(":8080")
+}
+
+func readStoriesFromFile(filename string) ([]Story, error) {
+	var stories []Story
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	var currentStory Story
+	isContentLine := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		log.Printf("line=%s\n", line)
+
+		if strings.HasPrefix(line, " ") {
+			// 如果行以空格开头，则为内容行
+			if isContentLine {
+				// 如果是内容行，则将内容添加到当前故事的 Content 字段中
+				currentStory.Content += line + "\n"
+			}
+		} else {
+			// 如果行不以空格开头，则为标题行
+			if currentStory.Title != "" {
+				// 如果当前故事的标题不为空，则将当前故事添加到故事列表中
+				stories = append(stories, currentStory)
+			}
+
+			// 创建新的故事，将标题行作为新故事的标题
+			currentStory = Story{
+				Title:   line,
+				Content: "",
+			}
+			isContentLine = true
+		}
+	}
+
+	if currentStory.Title != "" {
+		// 将最后一个故事添加到故事列表中
+		stories = append(stories, currentStory)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return stories, nil
+}

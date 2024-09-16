@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>二次元轮播小故事</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+    <script src="/static/script.js"></script>
+    <div class="container">
+        <!-- 添加一个id为stories-container的div元素作为故事容器 -->
+        <div class="carousel"  id="stories-container">
+            {{ range $index, $story := .Stories }}
+                <div class="story" style="display: none;">
+                    <h2>{{ index $story.Title }}</h2>
+                    <p>{{ index $story.Content }}</p>
+                </div>
+            {{ end }}
+        </div>
+    </div>
+
+    <!-- 在合适的位置添加以下HTML元素 -->
+    <div id="story"></div>
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+# Read more about SSH config files: https://linux.die.net/man/5/ssh_config
+Host 175.178.160.187
+    HostName 175.178.160.187
+    User root
+
+Host 9.135.73.164
+    HostName 9.135.73.164
+    User root
+    Port 36000
+    IdentityFile C:\Users\cc\.ssh\id_rsa
+Host 9.135.80.15
+    HostName 9.135.80.15
+    User root
+    Port 36000
+    IdentityFile C:\Users\cc\.ssh\id_rsa
+
+Host github.com
+    Hostname ssh.github.com
+    Port 443
